@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { QuestionCard } from './QuestionCard';
 import { QuizResults } from './QuizResults';
 import { quizData } from '../data/quizData';
 import { Button } from '@/components/ui/button';
 import { Brain, Star } from 'lucide-react';
+import { playSound } from '../utils/sounds';
+import { shuffleQuestions, shuffleAnswersWithMapping } from '../utils/shuffle';
 
 export const Quiz = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -14,6 +17,12 @@ export const Quiz = () => {
   const [isStarted, setIsStarted] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
+  // Shuffle questions and answers when quiz starts or resets
+  const shuffledQuestions = useMemo(() => {
+    if (!isStarted) return [];
+    return shuffleQuestions(quizData).map(question => shuffleAnswersWithMapping(question));
+  }, [isStarted]);
+
   const handleAnswerSelect = (answerIndex: number) => {
     if (showFeedback) return;
     
@@ -22,23 +31,28 @@ export const Quiz = () => {
     
     // Add a small delay before enabling the next button
     setTimeout(() => {
-      const isCorrect = answerIndex === quizData[currentQuestion].correctAnswer;
+      const isCorrect = answerIndex === shuffledQuestions[currentQuestion].correctAnswer;
+      
+      // Play appropriate sound
       if (isCorrect) {
+        playSound('correct');
         setScore(score + 1);
+      } else {
+        playSound('incorrect');
       }
+      
       setUserAnswers([...userAnswers, answerIndex]);
     }, 500);
   };
 
   const handleNextQuestion = () => {
-    if (selectedAnswer === null) return;
-
     setSelectedAnswer(null);
     setShowFeedback(false);
 
-    if (currentQuestion + 1 < quizData.length) {
+    if (currentQuestion + 1 < shuffledQuestions.length) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
+      playSound('complete');
       setShowResults(true);
     }
   };
@@ -54,6 +68,7 @@ export const Quiz = () => {
   };
 
   const startQuiz = () => {
+    playSound('click');
     setIsStarted(true);
   };
 
@@ -99,7 +114,7 @@ export const Quiz = () => {
     return (
       <QuizResults 
         score={score} 
-        totalQuestions={quizData.length} 
+        totalQuestions={shuffledQuestions.length} 
         onRestart={resetQuiz}
       />
     );
@@ -111,19 +126,19 @@ export const Quiz = () => {
         <div className="text-center mb-8">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 inline-block mb-4">
             <span className="text-white text-lg font-medium">
-              Question {currentQuestion + 1} sur {quizData.length}
+              Question {currentQuestion + 1} sur {shuffledQuestions.length}
             </span>
           </div>
           <div className="w-full bg-white/20 rounded-full h-3 mb-4">
             <div 
               className="bg-gradient-to-r from-pink-500 to-purple-600 h-3 rounded-full transition-all duration-500"
-              style={{ width: `${((currentQuestion + 1) / quizData.length) * 100}%` }}
+              style={{ width: `${((currentQuestion + 1) / shuffledQuestions.length) * 100}%` }}
             />
           </div>
         </div>
 
         <QuestionCard
-          question={quizData[currentQuestion]}
+          question={shuffledQuestions[currentQuestion]}
           selectedAnswer={selectedAnswer}
           onAnswerSelect={handleAnswerSelect}
           onNext={handleNextQuestion}

@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Check, X } from 'lucide-react';
+import { playSound } from '../utils/sounds';
 
 interface Question {
   id: number;
@@ -27,6 +27,18 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   canProceed,
   showFeedback
 }) => {
+  const handleAnswerClick = (index: number) => {
+    if (showFeedback) return;
+    
+    playSound('click');
+    onAnswerSelect(index);
+  };
+
+  const handleNextClick = () => {
+    playSound('click');
+    onNext();
+  };
+
   const getAnswerStyle = (index: number) => {
     if (!showFeedback) {
       return selectedAnswer === index
@@ -102,7 +114,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {question.answers.map((answer, index) => (
           <button
             key={index}
-            onClick={() => !showFeedback && onAnswerSelect(index)}
+            onClick={() => handleAnswerClick(index)}
             disabled={showFeedback}
             className={`
               p-4 rounded-xl text-left transition-all duration-200 transform hover:scale-[1.02]
@@ -125,7 +137,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
       <div className="flex justify-center">
         <Button
-          onClick={onNext}
+          onClick={handleNextClick}
           disabled={!canProceed}
           className={`
             px-8 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200
