@@ -123,30 +123,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         ))}
       </div>
 
-      {showFeedback && (
-        <div className="text-center mb-6">
-          <div className={`inline-flex items-center px-4 py-2 rounded-lg ${
-            selectedAnswer === question.correctAnswer 
-              ? 'bg-green-500/20 text-green-300' 
-              : 'bg-red-500/20 text-red-300'
-          }`}>
-            {selectedAnswer === question.correctAnswer ? (
-              <>
-                <Check className="w-5 h-5 mr-2" />
-                <span className="font-medium">Bonne réponse !</span>
-              </>
-            ) : (
-              <>
-                <X className="w-5 h-5 mr-2" />
-                <span className="font-medium">
-                  Mauvaise réponse. La bonne réponse était : {question.answers[question.correctAnswer]}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       <div className="flex justify-center">
         <Button
           onClick={onNext}
