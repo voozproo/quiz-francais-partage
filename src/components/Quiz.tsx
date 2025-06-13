@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { QuestionCard } from './QuestionCard';
 import { QuizResults } from './QuizResults';
@@ -13,21 +12,29 @@ export const Quiz = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
   const [isStarted, setIsStarted] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const handleAnswerSelect = (answerIndex: number) => {
+    if (showFeedback) return;
+    
     setSelectedAnswer(answerIndex);
+    setShowFeedback(true);
+    
+    // Add a small delay before enabling the next button
+    setTimeout(() => {
+      const isCorrect = answerIndex === quizData[currentQuestion].correctAnswer;
+      if (isCorrect) {
+        setScore(score + 1);
+      }
+      setUserAnswers([...userAnswers, answerIndex]);
+    }, 500);
   };
 
   const handleNextQuestion = () => {
     if (selectedAnswer === null) return;
 
-    const isCorrect = selectedAnswer === quizData[currentQuestion].correctAnswer;
-    if (isCorrect) {
-      setScore(score + 1);
-    }
-
-    setUserAnswers([...userAnswers, selectedAnswer]);
     setSelectedAnswer(null);
+    setShowFeedback(false);
 
     if (currentQuestion + 1 < quizData.length) {
       setCurrentQuestion(currentQuestion + 1);
@@ -43,6 +50,7 @@ export const Quiz = () => {
     setSelectedAnswer(null);
     setUserAnswers([]);
     setIsStarted(false);
+    setShowFeedback(false);
   };
 
   const startQuiz = () => {
@@ -119,7 +127,8 @@ export const Quiz = () => {
           selectedAnswer={selectedAnswer}
           onAnswerSelect={handleAnswerSelect}
           onNext={handleNextQuestion}
-          canProceed={selectedAnswer !== null}
+          canProceed={showFeedback}
+          showFeedback={showFeedback}
         />
       </div>
     </div>
